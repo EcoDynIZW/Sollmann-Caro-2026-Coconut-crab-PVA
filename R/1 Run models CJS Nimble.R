@@ -4,18 +4,12 @@ rm(list=ls())
 
 library(nimble)
 library(nimbleEcology)
-#library(stringr)
 library(MCMCvis)
 library(readxl)
 library(writexl)
-#library(ggplot2)
-#library(truncnorm)
-#library(EMT)
-#library(ggpubr)
-#library(cowplot)
+
 
 source('R/1b Nimble CJS model code.R')
-setwd("C:/Users/sollmann/Documents/Tim crabs/Survival")
 
 ##read in data
 dat.list<-readRDS('data/CMR_data.rds')
@@ -95,7 +89,7 @@ mcmc <- buildMCMC(conf.mcmc)
 cmcmc <- compileNimble(mcmc, project = cmodel, resetFunctions = TRUE)
 
 ## fit model
-samp <- runMCMC(cmcmc, niter = 20000, nburnin = 10000, nchains=3, 
+samp <- runMCMC(cmcmc, niter = 200, nburnin = 100, nchains=3, 
                 inits = inits, progressBar = TRUE)
 summ<-MCMCsummary(samp)
 
@@ -104,7 +98,7 @@ summ<-MCMCsummary(samp)
 
 ##write out summary table
 out<-cbind(rownames(summ), round(summ[,c(1,2,3,5)], dig=3))
-#write_xlsx(out, 'CJS_Model2v.xlsx')
+write_xlsx(out, 'CJS_Model2v.xlsx')
 #MCMCtrace(samp)
 
 
