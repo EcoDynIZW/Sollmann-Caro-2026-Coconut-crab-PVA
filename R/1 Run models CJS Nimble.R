@@ -13,6 +13,7 @@ source('R/1b Nimble CJS model code.R')
 
 ##read in data
 dat.list<-readRDS('data/CMR_data.rds')
+siteinfo<-read_xlsx('C:/Users/sollmann/Documents/Tim crabs/Data reconciliation/SiteInfo.xlsx')
 
 ##from ML CJS model selection: use field person minutes
 eff<-dat.list$survey
@@ -101,4 +102,62 @@ out<-cbind(rownames(summ), round(summ[,c(1,2,3,5)], dig=3))
 write_xlsx(out, 'CJS_Model2v.xlsx')
 #MCMCtrace(samp)
 
+### Turn into site-level estimates averaged over sex
+outmat<-do.call(rbind, samp)
 
+##males
+lphimat<-outmat[, grep('a.phi', colnames(outmat))]
+#phimat2<-outmat[,grep('mean.phi', colnames(outmat))]
+#phi.int<-log(phimat2/(1-phimat2))
+phimat<-apply(lphimat, 2, function(x) plogis(x))
+
+##females
+lphimatf<-outmat[, grep('a.phi', colnames(outmat))]+
+  matrix(outmat[, grep('b.sex', colnames(outmat))], nrow=nrow(outmat), ncol=9)
+phimatf<-apply(lphimatf, 2, function(x) plogis(x))
+
+##using estimates proportion of females, get site level average
+
+avg.phi<-plogis(matrix(outmat[,grep('psi', colnames(outmat))], nrow=nrow(outmat), ncol=9)*
+                  lphimatf + 
+                  (1-matrix(outmat[,grep('psi', colnames(outmat))], nrow=nrow(outmat), ncol=9))*
+                  lphimat)
+# 
+# mean(avg.phi[,(1:9)[-c(5,8)]])
+# 
+# ##summaries for text
+# round(apply(avg.phi, 2, mean), dig=2)
+# round(apply(avg.phi, 2, sd), dig=2)
+# round(apply(phimat, 2, median), dig=2)
+# round(apply(phimat, 2, sd), dig=2)
+# 
+# round(apply(phimatf, 2, median), dig=2)
+# round(apply(phimatf, 2, sd), dig=2)
+
+### turn into ggplot suitable format
+keep<-c(1:7,9,20)
+phi.df<-data.frame(Site=siteinfo$Name[pmatch(keep, siteinfo$Area)],
+                   Mean=round(apply(phimat, 2, mean), dig=3),
+                   Median=round(apply(phimat, 2, median), dig=3),
+                   sd=round(apply(phimat, 2, sd), dig=3),
+                   lower=round(apply(phimat, 2, function(x)quantile(x, p=0.05)), dig=3),
+                   upper=round(apply(phimat, 2, function(x)quantile(x, p=0.95)), dig=3) )
+phi.dff<-data.frame(Site=siteinfo$Name[pmatch(keep, siteinfo$Area)],
+                    Mean=round(apply(phimatf, 2, mean), dig=3),
+                    Median=round(apply(phimatf, 2, median), dig=3),
+                    sd=round(apply(phimatf, 2, sd), dig=3),
+                    lower=round(apply(phimatf, 2, function(x)quantile(x, p=0.05)), dig=3),
+                    upper=round(apply(phimatf, 2, function(x)quantile(x, p=0.95)), dig=3) )
+phi.dfa<-data.frame(Site=siteinfo$Name[pmatch(keep, siteinfo$Area)],
+                    Mean=round(apply(avg.phi, 2, mean), dig=3),
+                    Median=round(apply(avg.phi, 2, median), dig=3),
+                    sd=round(apply(avg.phi, 2, sd), dig=3),
+                    lower=round(apply(avg.phi, 2, function(x)quantile(x, p=0.05)), dig=3),
+                    upper=round(apply(avg.phi, 2, function(x)quantile(x, p=0.95)), dig=3) )
+
+
+phi.out<-rbind(phi.df, phi.dff,phi.dfa)
+phi.out$Sex<-rep(c('Male', 'Female', 'Average'), each=9)
+
+phi.out<-phi.out[order(c(keep,keep, keep)),]
+write_xlsx(phi.out, 'results/Survival_CJS2v.xlsx')
