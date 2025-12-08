@@ -1,4 +1,4 @@
-# Data and code for "Spatio-temporal metapopulation trends: the coconut crabs of Zanzibar", Sollmann, R., Caro, T. (submitted), Ecology and Evolution.
+# Data and code for "The future of the last stronghold of coconut crabs in East Africa", Sollmann, R., Caro, T. (submitted).
 --- 
 
 DOI repository: TBD
@@ -7,23 +7,25 @@ DOI repository: TBD
 
 <ins> **This repository contains the following scripts (folder R)** </ins>:
 
-*GLMM CPUE.R*: R code to analyze catch per unit effort of coconut crabs (Methods - Population trends)
+*1 Run models CJS Nimble.R*: R code to fir Cormack-Jolly-Seber (CJS) model to recapture data of coconut crabs from 9 sites/subpopulations
 
-*GLMM weights.R*: R code to analyze weights of coconut crabs (Methods - Weights)
+*1b Nimble CJS model code.R*:  Nimble model code for the above mentioned CJS model
 
-*GLMM sex.R*: R code to analyze the proportion of female of coconut crabs (Methods - Proportion of females)
+*2 PVA.R*: R code to run all population projections described in the manuscript; requires output from script 1.
 
-<ins> **It further contains the following processed data files (folder Interim data products)** </ins>:
+*3 Summarize threats.R*: R code to make summaries and figures regarding the different threats
 
-*CPUE.trend.data.rds*: data frame with visit level information on number of crabs captured, effort, visit covariates (moon, rain), site covariates (anthropogenic factors) and other information (eg, survey label, site name and code etc.)
+*4 Plotting simulation results.R*: R code to make summaries and figures from the PVA (requires output from script 2)
 
-*Weight_data.rds*: data frame with individual level information on sex, weight, site, survey and visit for all captured coconut crabs
+<ins> **It further contains the following input data files (folder data)** </ins>:
 
-<ins> **It further contains the following raw data files (folder data-raw)** </ins>:
+*CMR_data.rds*: list with all information to fit Cormack-Jolly-Seber models to estimate coconut crab survival for 9 sites/subpopulations
 
-*Conservation Campaign dates.xlsx*: Information on when (if at all) conservation campaigns were implemented at all survey sites (see Methods - Additional information)
+*threats_processed.rds*: data frame with threat assessments for all subpopulations
 
-*Report data.xlsx*: Information on effort and number of crabs captured from unpublished student reports (see Methods - Additional information)
+*Trend estimates good data sites.xlsx*: Estimates of population trends for 9 sites/subpopulations; source: Sollmann, R., & Caro, T. (2024). Spatio‐temporal metapopulation trends: The coconut crabs of Zanzibar. Ecology and Evolution, 14(8), e70168.
+
+Details on file content are provided in the script(s) making use of the data files. 
 
 
 ## Sharing/Access information
