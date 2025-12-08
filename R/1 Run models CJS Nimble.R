@@ -2,6 +2,8 @@
 ##### Run CJS models in Nimble #################################################
 rm(list=ls())
 
+### set working directory to repository directory for all paths to work
+
 library(nimble)
 library(nimbleEcology)
 library(MCMCvis)
@@ -13,13 +15,12 @@ source('R/1b Nimble CJS model code.R')
 
 ##read in data
 dat.list<-readRDS('data/CMR_data.rds')
-siteinfo<-read_xlsx('C:/Users/sollmann/Documents/Tim crabs/Data reconciliation/SiteInfo.xlsx')
 
 ##from ML CJS model selection: use field person minutes
 eff<-dat.list$survey
 
 ##adjust for proportion with photograph
-effort<-((eff$FieldPersM/1000)*eff$prop)#/(eff$searcharea*100)
+effort<-((eff$FieldPersM/1000)*eff$prop)
 
 ### subset data for survival to individuals not caught first in last survey
 
@@ -80,7 +81,7 @@ model <- nimbleModel(cjs.2v, constants = consts,
 
 cmodel <- compileNimble(model)    
 
-##use block sampling for survival params
+##use block sampling for survival params (improves mixing)
 conf.mcmc<-configureMCMC(model, monitors = params, thin=5)
 
 conf.mcmc$removeSamplers(c('mean.phi', 'b.sex', 'a.phi'))
@@ -90,7 +91,7 @@ mcmc <- buildMCMC(conf.mcmc)
 cmcmc <- compileNimble(mcmc, project = cmodel, resetFunctions = TRUE)
 
 ## fit model
-samp <- runMCMC(cmcmc, niter = 200, nburnin = 100, nchains=3, 
+samp <- runMCMC(cmcmc, niter = 20000, nburnin = 10000, nchains=3, 
                 inits = inits, progressBar = TRUE)
 summ<-MCMCsummary(samp)
 
@@ -99,7 +100,7 @@ summ<-MCMCsummary(samp)
 
 ##write out summary table
 out<-cbind(rownames(summ), round(summ[,c(1,2,3,5)], dig=3))
-write_xlsx(out, 'CJS_Model2v.xlsx')
+#write_xlsx(out, 'CJS_Model2v.xlsx')
 #MCMCtrace(samp)
 
 ### Turn into site-level estimates averaged over sex
@@ -122,33 +123,23 @@ avg.phi<-plogis(matrix(outmat[,grep('psi', colnames(outmat))], nrow=nrow(outmat)
                   lphimatf + 
                   (1-matrix(outmat[,grep('psi', colnames(outmat))], nrow=nrow(outmat), ncol=9))*
                   lphimat)
-# 
-# mean(avg.phi[,(1:9)[-c(5,8)]])
-# 
-# ##summaries for text
-# round(apply(avg.phi, 2, mean), dig=2)
-# round(apply(avg.phi, 2, sd), dig=2)
-# round(apply(phimat, 2, median), dig=2)
-# round(apply(phimat, 2, sd), dig=2)
-# 
-# round(apply(phimatf, 2, median), dig=2)
-# round(apply(phimatf, 2, sd), dig=2)
 
-### turn into ggplot suitable format
+### turn into dataframe
 keep<-c(1:7,9,20)
-phi.df<-data.frame(Site=siteinfo$Name[pmatch(keep, siteinfo$Area)],
+phi.df<-data.frame(Site=keep,
                    Mean=round(apply(phimat, 2, mean), dig=3),
                    Median=round(apply(phimat, 2, median), dig=3),
                    sd=round(apply(phimat, 2, sd), dig=3),
                    lower=round(apply(phimat, 2, function(x)quantile(x, p=0.05)), dig=3),
                    upper=round(apply(phimat, 2, function(x)quantile(x, p=0.95)), dig=3) )
-phi.dff<-data.frame(Site=siteinfo$Name[pmatch(keep, siteinfo$Area)],
+phi.dff<-data.frame(Site=keep,
                     Mean=round(apply(phimatf, 2, mean), dig=3),
                     Median=round(apply(phimatf, 2, median), dig=3),
                     sd=round(apply(phimatf, 2, sd), dig=3),
                     lower=round(apply(phimatf, 2, function(x)quantile(x, p=0.05)), dig=3),
                     upper=round(apply(phimatf, 2, function(x)quantile(x, p=0.95)), dig=3) )
-phi.dfa<-data.frame(Site=siteinfo$Name[pmatch(keep, siteinfo$Area)],
+
+phi.dfa<-data.frame(Site=keep,
                     Mean=round(apply(avg.phi, 2, mean), dig=3),
                     Median=round(apply(avg.phi, 2, median), dig=3),
                     sd=round(apply(avg.phi, 2, sd), dig=3),
@@ -160,4 +151,6 @@ phi.out<-rbind(phi.df, phi.dff,phi.dfa)
 phi.out$Sex<-rep(c('Male', 'Female', 'Average'), each=9)
 
 phi.out<-phi.out[order(c(keep,keep, keep)),]
-write_xlsx(phi.out, 'results/Survival_CJS2v.xlsx')
+
+##write out - necessary for PVA
+write_xlsx(phi.out, 'Survival_CJS2v.xlsx')
