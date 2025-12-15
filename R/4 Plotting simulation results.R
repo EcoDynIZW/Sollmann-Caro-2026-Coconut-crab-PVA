@@ -296,6 +296,7 @@ pdf.full$Iteration<-rep(1:niter, nrow(pdf.full)/niter)
 
 ##calculate median loss
 pdf.m<-aggregate(data=pdf.full, value~variable+Scenario+Loss, FUN=median)
+pdf.m$Loss<-factor(pdf.m$Loss, levels=c("Hotel", "Ag",  "Housing", "Offtake")) 
 
 ### same with proportional loss
 df.hotel<-lapply(1:length(group.list), 
@@ -336,6 +337,7 @@ pdf.fullp$Iteration<-rep(1:niter, nrow(pdf.fullp)/niter)
 
 ##calculate median loss
 pdf.mp<-aggregate(data=pdf.fullp, value~variable+Scenario+Loss, FUN=median)
+pdf.mp$Loss<-factor(pdf.mp$Loss, levels=c("Hotel", "Ag",  "Housing", "Offtake")) 
 
 ##set facet lables
 supp.labs <- c("Islets Pemba","Islets Unguja", "Mainland Pemba",

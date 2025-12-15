@@ -1,4 +1,4 @@
-# Data and code for "The future of the last stronghold of coconut crabs in East Africa", Sollmann, R., Caro, T. (submitted).
+# Data and code for "The future of the last stronghold of coconut crabs in East Africa"
 --- 
 
 DOI repository: TBD
