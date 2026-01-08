@@ -1,6 +1,8 @@
 ######################################################################
 #### make plots from population projections ##########################
 
+## requires running script 2 and saving output
+
 ## set working directory to repository directory
 
 library(ggplot2)

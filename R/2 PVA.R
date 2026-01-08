@@ -22,7 +22,8 @@ lam<-as.data.frame(lam)
 
 ## survival from random effect CJS model
 
-##ranef
+##survival estimates - requires running the CJS model in nimble
+## and saving output - see script 1
 phi1<-read_xlsx('Survival_CJS2v.xlsx')
 phi1<-as.data.frame(phi1)
 
@@ -120,7 +121,7 @@ nsites<-nrow(threats)
     N<-R<-matrix(NA, Tt, nsites)
     N[1,]<-round(threats$N)
 
-    ##terature through years
+    ##iterate through years
     for (t in 2:Tt){
       s<-rbinom(nsites, N[t-1 ,],phir)#
       R[t,]<-rpois(nsites,N[t-1 ,]*rran)
@@ -286,32 +287,5 @@ saveRDS(list(lost.list=lost.list,
              lost.list2=lost.list2,
              exp.list= exp.list),
         'LossesScenarios.rds')
-
-
-# ##make table of total losses per cause and scenario - not in the ms
-# 
-# lhotel<-t(sapply(lost.list, function(x) {
-#   o1<-apply(x[,1:nsites],1,sum)
-#   o2<-c(mean(o1), quantile(o1, c(0.025, 0.975)))
-#   return(round(o2, dig=2))
-#   }))
-# lother<-t(sapply(lost.list2, function(x) {
-#   o1<-apply(x[,1:nsites],1,sum)
-#   o2<-c(mean(o1), quantile(o1, c(0.025, 0.975)))
-#   return(round(o2, dig=2))
-# }))
-# lexp<-t(sapply(exp.list, function(x) {
-#   o1<-apply(x[,1:nsites],1,sum)
-#   o2<-c(mean(o1), quantile(o1, c(0.025, 0.975)))
-#   return(round(o2, dig=2))
-# }))
-# 
-# loss.df<-as.data.frame(rbind(lhotel,lother,lexp))
-# colnames(loss.df)<-c('Mean', 'L95', 'U95')
-# loss.df$Threat<-rep(c('Hotel', 'Housing+Ag', 'Offtake'), each=3)
-# loss.df$Scenario<-rep(scen, 3)
-# loss.df<-loss.df[,c(4,5,1,2,3)]
-# write_xlsx(loss.df, 'LossTable.xlsx')
-
 
 
