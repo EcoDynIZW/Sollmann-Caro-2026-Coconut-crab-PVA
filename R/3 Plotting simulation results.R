@@ -28,7 +28,7 @@ qfun<-function(x)quantile(x, c(0.025, 0.975))
 ######################################################################
 ### first, plot of 9 good sites only #################################
 
-## Supplement S1, Figure S3
+## Supplement S1, Figure S1
 
 out.df0<-readRDS('ProjectionsNineGoodSites.rds')
 
@@ -58,7 +58,7 @@ pp<-ggplot(data=mean.df0, aes(x=T, y=N, color=site))+
 
 pp
 
-jpeg('Supp_FigS3.jpg', width=18, height=12, units = 'cm', res=300)
+jpeg('Supp1_FigS1.jpg', width=18, height=12, units = 'cm', res=300)
 pp
 dev.off()
 
@@ -76,7 +76,7 @@ niter=500
 
 #######################################################################
 ### read in future scenarios 
-scen<-c('certain', 'likely', 'possible')
+scen<-c('highly likely', 'likely', 'possible')
 
 out.df2<-readRDS('ProjectionsScenarios.rds')
 out.df.all<-rbind(out.df, out.df2)
@@ -197,6 +197,9 @@ df.et<-make.plot.df(ll=exp.list,
 ##sum the three causes
 df.all<-df.ht
 df.all$value<-df.ht$value+df.ot$value+df.et$value
+
+##get median for each scenario
+aggregate(df.all, value~Scenario, FUN='median')
 
 ##make boxplot (Figure 2C)
 p.loss<-ggplot(data=df.all, aes(x=Scenario, y=value, fill=Scenario))+
@@ -383,7 +386,7 @@ dev.off()
 ######################################################################
 #### make trajectories of individual subpopulations ##################
 
-### Supplement S1, Figures S4-S6
+### Supplement S1, Figures S3-S5
 
 ## maybe by categories mainland-island, Pemba-Unguja
 mean.df2$Category<-'MP'
@@ -401,13 +404,13 @@ mean.df2$Category[threats$Region[idx] == 'Unguja' &
 ## select lines of code as appropriate below
 
 # pp<-ggplot(data=mean.df2[threats$Region[idx] == 'Pemba' &
-#                            threats$Island[idx] == 'N' ,], 
+#                            threats$Island[idx] == 'N' ,],
 #            aes(x=T, y=N, color = Scenario))+
-# pp<-ggplot(data=mean.df2[threats$Region[idx] == 'Pemba' &
-#                              threats$Island[idx] == 'Y' ,], 
-#              aes(x=T, y=N, color = Scenario))+
-pp<-ggplot(data=mean.df2[threats$Region[idx] == 'Unguja' ,], 
+pp<-ggplot(data=mean.df2[threats$Region[idx] == 'Pemba' &
+                             threats$Island[idx] == 'Y' ,],
              aes(x=T, y=N, color = Scenario))+
+# pp<-ggplot(data=mean.df2[threats$Region[idx] == 'Unguja' ,], 
+#              aes(x=T, y=N, color = Scenario))+
   geom_line(linewidth=0.8)+
   scale_x_continuous(breaks=seq(1,10,1))+
   theme_bw()+
@@ -419,7 +422,38 @@ pp<-ggplot(data=mean.df2[threats$Region[idx] == 'Unguja' ,],
   xlab('Year')+ylab('Population size')+
   facet_wrap(vars(site), scales='free', ncol=4)
 pp
-jpeg('SuppFig6_U.jpg', width=20, height=29, units='cm', res=300)
+jpeg('SuppFig4_U.jpg', width=20, height=29, units='cm', res=300)
 pp
 dev.off()
 ######################################################################
+
+#######################################################################
+### plot average trajectory for sensitivity analysis
+### Figure S2
+
+out.df3<-readRDS('ProjectionsScenarios_meta.rds')
+out.dfx<-readRDS('ProjectionsStatusQuo_meta.rds')
+
+out.dfall<-rbind(out.df3, out.dfx)
+
+##calculate metapopulation
+nmeta12<-aggregate(data=out.dfall, N~T+iter+Scenario+pmeta, FUN=sum)
+nmeta2<-aggregate(nmeta12, N~T+Scenario+pmeta, FUN=median)
+nmeta2$pmeta<-as.factor(nmeta2$pmeta)
+nmeta2$Scenario<-factor(nmeta2$Scenario, 
+                        levels = c( "status quo","highly likely" ,"likely","possible"))
+
+pp.a<-ggplot(data=nmeta2,aes(x=T, y=N, color=pmeta))+
+  geom_line(linewidth=0.8)+
+  scale_x_continuous(breaks=seq(2,10,2))+
+  theme_bw()+
+  theme(legend.position = 'bottom',
+        axis.ticks.x.top = element_blank(),
+        axis.text.x.top = element_blank())+
+  xlab('Year')+ylab('Metapopulation size')+
+  facet_wrap(vars(Scenario))
+pp.a
+
+jpeg('SuppFigS2.jpg', width=20, height=22, units='cm', res=300)
+pp.a
+dev.off()
